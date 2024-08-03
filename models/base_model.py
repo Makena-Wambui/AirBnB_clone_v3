@@ -90,7 +90,7 @@ class BaseModel:
         models.storage.new(self)
         models.storage.save()
 
-    def to_json(self):
+    def to_dict(self):
         """returns json representation of self"""
         bm_dict = {}
         for key, value in (self.__dict__).items():
