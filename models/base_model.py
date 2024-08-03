@@ -10,6 +10,7 @@ from uuid import uuid4, UUID
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, DateTime
+from hashlib import md5
 
 storage_type = os.environ.get('HBNB_TYPE_STORAGE')
 
@@ -90,7 +91,7 @@ class BaseModel:
         models.storage.new(self)
         models.storage.save()
 
-    def to_dict(self):
+    def to_json(self):
         """returns json representation of self"""
         bm_dict = {}
         for key, value in (self.__dict__).items():
@@ -99,8 +100,6 @@ class BaseModel:
                 continue
             if (self.__is_serializable(value)):
                 bm_dict[key] = value
-            if getenv("HBNB_TYPE_STORAGE") == "db" and key == "password":
-                del key
             else:
                 bm_dict[key] = str(value)
         bm_dict['__class__'] = type(self).__name__
@@ -116,3 +115,21 @@ class BaseModel:
             deletes current instance from storage
         """
         models.storage.delete(self)
+
+    def to_dict(self, for_storage=False):
+        """returns a dictionary representation of self"""
+        bm_dict = {}
+        for key, value in (self.__dict__).items():
+            if key == '_sa_instance_state':
+                continue
+            if self.__is_serializable(value):
+                bm_dict[key] = value
+            else:
+                bm_dict[key] = str(value)
+        bm_dict['__class__'] = type(self).__name__
+
+        # Remove the password key unless it's for storage
+        if not for_storage and "password" in bm_dict:
+            del bm_dict["password"]
+
+        return bm_dict

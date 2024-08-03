@@ -26,14 +26,24 @@ class User(BaseModel, Base):
         first_name = ''
         last_name = ''
 
-    def __setattr__(self, name, value):
-        """Securely hashing passwords using MD5"""
-        if name == "password":
-            super(User, self).__setattr__(name,
-                                          md5(value.encode()).hexdigest())
-        else:
-            super(User, self).__setattr__(name, value)
-
     def __init__(self, *args, **kwargs):
         """initializes user"""
+        if "password" in kwargs:
+            kwargs["password"] = md5(kwargs["password"].encode()).hexdigest()
         super().__init__(*args, **kwargs)
+
+    @property
+    def password(self):
+        """ retrieves passwd"""
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        """sets password"""
+        self._password = md5(value.encode()).hexdigest()
+
+    def save(self):
+        """Updates the updated_at attribute and saves the instance"""
+        self.updated_at = datetime.utcnow()
+        models.storage.new(self)
+        models.storage.save()
