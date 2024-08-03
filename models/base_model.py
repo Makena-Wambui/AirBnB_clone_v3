@@ -72,7 +72,7 @@ class BaseModel:
         try:
             obj_to_str = json.dumps(obj_v)
             return obj_to_str is not None and isinstance(obj_to_str, str)
-        except:
+        except Exception:
             return False
 
     def bm_update(self, name, value):
@@ -99,10 +99,12 @@ class BaseModel:
                 continue
             if (self.__is_serializable(value)):
                 bm_dict[key] = value
+            if getenv("HBNB_TYPE_STORAGE") == "db" and key == "password":
+                del key
             else:
                 bm_dict[key] = str(value)
         bm_dict['__class__'] = type(self).__name__
-        return(bm_dict)
+        return (bm_dict)
 
     def __str__(self):
         """returns string type representation of object instance"""
