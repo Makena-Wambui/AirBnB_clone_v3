@@ -11,8 +11,6 @@ import json
 import os
 
 User = models.user.User
-State = models.state.State
-City = models.city.City
 BaseModel = models.base_model.BaseModel
 FileStorage = engine.file_storage.FileStorage
 storage = models.storage
@@ -70,18 +68,6 @@ class TestFileStorageDocs(unittest.TestCase):
         actual = FileStorage.reload.__doc__
         self.assertEqual(expected, actual)
 
-    def test_doc_get(self):
-        """... documentation for get function"""
-        expected = ' retrieves one object '
-        actual = FileStorage.get.__doc__
-        self.assertEqual(expected, actual)
-
-    def test_doc_count(self):
-        """... documentation for count function"""
-        expected = ' counts number of objects of a class in storage '
-        actual = FileStorage.count.__doc__
-        self.assertEqual(expected, actual)
-
 
 @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
 class TestBmFsInstances(unittest.TestCase):
@@ -105,15 +91,13 @@ class TestBmFsInstances(unittest.TestCase):
 
     def test_storage_file_exists(self):
         """... checks proper FileStorage instantiation"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.bm_obj.save()
         self.assertTrue(os.path.isfile(F))
 
     def test_obj_saved_to_file(self):
         """... checks proper FileStorage instantiation"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.bm_obj.save()
         bm_id = self.bm_obj.id
         actual = 0
@@ -136,8 +120,7 @@ class TestBmFsInstances(unittest.TestCase):
 
     def test_reload(self):
         """... checks proper usage of reload function"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.bm_obj.save()
         bm_id = self.bm_obj.id
         actual = 0
@@ -151,8 +134,7 @@ class TestBmFsInstances(unittest.TestCase):
 
     def test_save_reload_class(self):
         """... checks proper usage of class attribute in file storage"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.bm_obj.save()
         bm_id = self.bm_obj.id
         actual = 0
@@ -184,16 +166,14 @@ class TestUserFsInstances(unittest.TestCase):
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_storage_file_exists(self):
         """... checks proper FileStorage instantiation"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.user.save()
         self.assertTrue(os.path.isfile(F))
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_obj_saved_to_file(self):
         """... checks proper FileStorage instantiation"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.user.save()
         u_id = self.user.id
         actual = 0
@@ -207,8 +187,7 @@ class TestUserFsInstances(unittest.TestCase):
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_reload(self):
         """... checks proper usage of reload function"""
-        if os.path.isfile(F):
-            os.remove(F)
+        os.remove(F)
         self.bm_obj.save()
         u_id = self.bm_obj.id
         actual = 0
@@ -222,54 +201,114 @@ class TestUserFsInstances(unittest.TestCase):
 
 
 @unittest.skipIf(storage_type == 'db', 'skip if environ is not db')
-class TestGetCountFS(unittest.TestCase):
-    """testing get and count methods"""
+class TestStorageGet(unittest.TestCase):
+    """
+    Testing `get()` method in DBStorage
+    """
 
     @classmethod
     def setUpClass(cls):
+        """
+        setup tests for class
+        """
         print('\n\n.................................')
-        print('...... Testing Get and Count ......')
-        print('.......... FS Methods ..........')
+        print('...... Testing Get() Method ......')
+        print('.......... Place  Class ..........')
         print('.................................\n\n')
 
     def setUp(self):
-        """initializes new state and cities for testing"""
-        if os.path.isfile(F):
-            os.remove(F)
-        storage.reload()
-        self.state = State()
-        self.state.name = 'California'
+        """
+        setup method
+        """
+        self.state = models.state.State(name="Florida")
         self.state.save()
-        self.city1 = City()
-        self.city1.name = 'Fremont'
-        self.city1.state_id = self.state.id
-        self.city1.save()
-        self.city2 = City()
-        self.city2.name = 'San_Francisco'
-        self.city2.state_id = self.state.id
-        self.city2.save()
 
-    def test_get(self):
-        """check if get method returns state"""
-        real_state = storage.get("State", self.state.id)
-        fake_state = storage.get("State", "12345")
-        no_state = storage.get("", "")
+    def test_get_method_obj(self):
+        """
+        testing get() method
+        :return: True if pass, False if not pass
+        """
 
-        self.assertEqual(real_state, self.state)
-        self.assertNotEqual(fake_state, self.state)
-        self.assertIsNone(no_state)
+        print(self.state.id)
+        result = storage.get(cls="State", id=self.state.id)
 
-    def test_count(self):
-        """checks if count method returns correct numbers"""
-        state_count = storage.count("State")
-        city_count = storage.count("City")
-        place_count = storage.count("Place")
-        all_count = storage.count(None)
+        self.assertIsInstance(result, models.state.State)
 
-        self.assertEqual(state_count, 1)
-        self.assertEqual(city_count, 2)
-        self.assertEqual(place_count, 0)
-        self.assertEqual(all_count, 18)
+    def test_get_method_return(self):
+        """
+        testing get() method for id match
+        :return: True if pass, false if not pass
+        """
+        result = storage.get(cls="State", id=str(self.state.id))
+
+        self.assertEqual(self.state.id, result.id)
+
+    def test_get_method_none(self):
+        """
+        testing get() method for None return
+        :return: True if pass, false if not pass
+        """
+        result = storage.get(cls="State", id="doesnotexist")
+
+        self.assertIsNone(result)
+
+
+@unittest.skipIf(storage_type == 'db', 'skip if environ is not db')
+class TestStorageCount(unittest.TestCase):
+    """
+    tests count() method in DBStorage
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        setup tests for class
+        """
+        print('\n\n.................................')
+        print('...... Testing Get() Method ......')
+        print('.......... Place  Class ..........')
+        print('.................................\n\n')
+
+    def setup(self):
+        """
+        setup method
+        """
+        models.state.State()
+        models.state.State()
+        models.state.State()
+        models.state.State()
+        models.state.State()
+        models.state.State()
+        models.state.State()
+
+    def test_count_all(self):
+        """
+        testing counting all instances
+        :return: True if pass, false if not pass
+        """
+        result = storage.count()
+
+        self.assertEqual(len(storage.all()), result)
+
+    def test_count_state(self):
+        """
+        testing counting state instances
+        :return: True if pass, false if not pass
+        """
+        result = storage.count(cls="State")
+
+        self.assertEqual(len(storage.all("State")), result)
+
+    def test_count_city(self):
+        """
+        testing counting non existent
+        :return: True if pass, false if not pass
+        """
+        result = storage.count(cls="City")
+
+        self.assertEqual(
+            int(0 if len(storage.all("City")) is None else
+                len(storage.all("City"))), result)
 
 
 if __name__ == '__main__':

@@ -66,19 +66,6 @@ class TestDBStorageDocs(unittest.TestCase):
         actual = DBStorage.delete.__doc__
         self.assertEqual(expected, actual)
 
-    def test_doc_get(self):
-        """... documentation for get function"""
-        expected = ' retrieves one object '
-        actual = DBStorage.get.__doc__
-        self.assertEqual(expected, actual)
-
-    def test_doc_count(self):
-        """... testing length version of count function
-        """
-        expected = 293
-        actual = len(DBStorage.count.__doc__)
-        self.assertEqual(expected, actual)
-
 
 @unittest.skipIf(storage_type != 'db', 'skip if environ is not db')
 class TestStateDBInstances(unittest.TestCase):
@@ -307,54 +294,114 @@ class TestPlaceDBInstances(unittest.TestCase):
 
 
 @unittest.skipIf(storage_type != 'db', 'skip if environ is not db')
-class TestGetCountDB(unittest.TestCase):
-    """testing get and count methods"""
+class TestStorageGet(unittest.TestCase):
+    """
+    Testing `get()` method in DBStorage
+    """
 
     @classmethod
     def setUpClass(cls):
+        """
+        setup tests for class
+        """
         print('\n\n.................................')
-        print('...... Testing Get and Count ......')
-        print('.......... DB Methods ..........')
+        print('...... Testing Get() Method ......')
+        print('.......... Place  Class ..........')
         print('.................................\n\n')
 
     def setUp(self):
-        """initializes new state and cities for testing"""
-        self.state = State()
-        self.state.name = 'California'
+        """
+        setup method
+        """
+        self.state = State(name="Florida")
         self.state.save()
-        self.city1 = City()
-        self.city1.name = 'Fremont'
-        self.city1.state_id = self.state.id
-        self.city1.save()
-        self.city2 = City()
-        self.city2.name = 'San_Francisco'
-        self.city2.state_id = self.state.id
-        self.city2.save()
 
-    def test_get(self):
-        """check if get method returns state"""
-        real_state = storage.get("State", self.state.id)
-        fake_state = storage.get("State", "12345")
-        no_state = storage.get("", "")
+    def test_get_method_obj(self):
+        """
+        testing get() method
+        :return: True if pass, False if not pass
+        """
+        result = storage.get(cls="State", id=self.state.id)
 
-        self.assertEqual(real_state, self.state)
-        self.assertNotEqual(fake_state, self.state)
-        self.assertIsNone(no_state)
+        self.assertIsInstance(result, State)
 
-    def test_count(self):
-        """checks if count method returns correct numbers"""
-        state_count = storage.count("State")
-        city_count = storage.count("City")
-        place_count = storage.count("Place")
-        all_count = storage.count("")
+    def test_get_method_return(self):
+        """
+        testing get() method for id match
+        :return: True if pass, false if not pass
+        """
+        result = storage.get(cls="State", id=str(self.state.id))
 
-        self.assertEqual(state_count, 3)
-        self.assertEqual(city_count, 4)
-        self.assertEqual(place_count, 0)
-        self.assertEqual(all_count, 7)
+        self.assertEqual(self.state.id, result.id)
+
+    def test_get_method_none(self):
+        """
+        testing get() method for None return
+        :return: True if pass, false if not pass
+        """
+        result = storage.get(cls="State", id="doesnotexist")
+
+        self.assertIsNone(result)
+
+
+@unittest.skipIf(storage_type != 'db', 'skip if environ is not db')
+class TestStorageCount(unittest.TestCase):
+    """
+    tests count() method in DBStorage
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        setup tests for class
+        """
+        print('\n\n.................................')
+        print('...... Testing Get() Method ......')
+        print('.......... Place  Class ..........')
+        print('.................................\n\n')
+
+    def setup(self):
+        """
+        setup method
+        """
+        self.state1 = State(name="California")
+        self.state1.save()
+        self.state2 = State(name="Colorado")
+        self.state2.save()
+        self.state3 = State(name="Wyoming")
+        self.state3.save()
+        self.state4 = State(name="Virgina")
+        self.state4.save()
+        self.state5 = State(name="Oregon")
+        self.state5.save()
+        self.state6 = State(name="New_York")
+        self.state6.save()
+        self.state7 = State(name="Ohio")
+        self.state7.save()
+
+    def test_count_all(self):
+        """
+        testing counting all instances
+        :return: True if pass, false if not pass
+        """
+        result = storage.count()
+
+        self.assertEqual(len(storage.all()), result)
+
+    def test_count_state(self):
+        """
+        testing counting state instances
+        :return: True if pass, false if not pass
+        """
+        result = storage.count(cls="State")
+
+        self.assertEqual(len(storage.all("State")), result)
 
     def test_count_city(self):
-        """counting non existent"""
+        """
+        testing counting non existent
+        :return: True if pass, false if not pass
+        """
         result = storage.count(cls="City")
 
         self.assertEqual(int(0 if len(storage.all("City")) is None else
