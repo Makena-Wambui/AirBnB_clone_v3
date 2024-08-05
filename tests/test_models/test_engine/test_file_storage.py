@@ -130,7 +130,7 @@ class TestBmFsInstances(unittest.TestCase):
         actual = 1
         try:
             serialized = json.dumps(my_model_json)
-        except:
+        except Exception:
             actual = 0
         self.assertTrue(1 == actual)
 
@@ -270,6 +270,7 @@ class TestGetCountFS(unittest.TestCase):
         self.assertEqual(city_count, 2)
         self.assertEqual(place_count, 0)
         self.assertEqual(all_count, 18)
+
 
 if __name__ == '__main__':
     unittest.main

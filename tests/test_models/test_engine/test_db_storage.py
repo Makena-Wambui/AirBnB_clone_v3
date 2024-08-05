@@ -353,5 +353,13 @@ class TestGetCountDB(unittest.TestCase):
         self.assertEqual(place_count, 0)
         self.assertEqual(all_count, 7)
 
+    def test_count_city(self):
+        """counting non existent"""
+        result = storage.count(cls="City")
+
+        self.assertEqual(int(0 if len(storage.all("City")) is None else
+                             len(storage.all("City"))), result)
+
+
 if __name__ == '__main__':
     unittest.main
