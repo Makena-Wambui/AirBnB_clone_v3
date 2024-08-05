@@ -81,6 +81,7 @@ class DBStorage:
 
     def get(self, cls, id):
         """ retrieves one object """
+        """
         try:
             obj_dict = {}
             if cls:
@@ -90,6 +91,10 @@ class DBStorage:
             return obj_dict[id]
         except:
             return None
+        """
+        if cls in self.CNC:
+            return self.__session.query(self.CNC[cls]).get(id)
+        return None
 
     def count(self, cls=None):
         """Counts number of objects in storage
@@ -100,6 +105,7 @@ class DBStorage:
             the number of objects in storage matching the given class name.
 
             If no name is passed, returns the count of all objects in storage.
+        """
         """
         obj_dict = {}
         if cls:
@@ -115,3 +121,13 @@ class DBStorage:
                 for item in obj_class:
                     obj_dict[item.id] = item
             return len(obj_dict)
+        """
+        if cls:
+            return self.__session.query(self.CNC[cls]).count()
+        else:
+            total_count = 0
+            for cls_name in self.CNC:
+                if cls_name == 'BaseModel':
+                    continue
+                total_count += self.__session.query(self.CNC[cls_name]).count()
+            return total_count

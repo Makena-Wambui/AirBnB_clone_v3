@@ -59,7 +59,7 @@ class FileStorage:
         try:
             with open(fname, mode='r', encoding='utf-8') as f_io:
                 new_objs = json.load(f_io)
-        except:
+        except Exception:
             return
         for o_id, d in new_objs.items():
             k_cls = d['__class__']
@@ -69,7 +69,7 @@ class FileStorage:
         """ deletes obj from __objects if it's inside """
         try:
             del __objects[obj]
-        except:
+        except Exception:
             return
 
     def close(self):
@@ -80,6 +80,7 @@ class FileStorage:
 
     def get(self, cls, id):
         """ retrieves one object """
+        """
         obj_dict = {}
         obj = None
         if cls:
@@ -88,9 +89,14 @@ class FileStorage:
                 if item.id == id:
                     obj = item
             return obj
+        """
+        if cls in self.CNC:
+            return self.__session.query(self.CNC[cls]).get(id)
+        return None
 
     def count(self, cls=None):
         """ counts number of objects of a class in storage """
+        """
         if cls:
             obj_list = []
             obj_dict = FileStorage.__objects.values()
@@ -107,3 +113,13 @@ class FileStorage:
                 for item in obj_class:
                     obj_list.append(item)
             return len(obj_list)
+        """
+        if cls:
+            return self.__session.query(self.CNC[cls]).count()
+        else:
+            total_count = 0
+            for cls_name in self.CNC:
+                if cls_name == 'BaseModel':
+                    continue
+                total_count += self.__session.query(self.CNC[cls_name]).count()
+            return total_count
