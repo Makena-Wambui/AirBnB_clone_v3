@@ -103,6 +103,9 @@ class BaseModel:
             else:
                 bm_dict[key] = str(value)
         bm_dict['__class__'] = type(self).__name__
+
+        if storage_type == "db" and 'password' in bm_dict:
+            bm_dict.pop('password')
         return (bm_dict)
 
     def __str__(self):
@@ -115,21 +118,3 @@ class BaseModel:
             deletes current instance from storage
         """
         models.storage.delete(self)
-
-    def to_dict(self, for_storage=False):
-        """returns a dictionary representation of self"""
-        bm_dict = {}
-        for key, value in (self.__dict__).items():
-            if key == '_sa_instance_state':
-                continue
-            if self.__is_serializable(value):
-                bm_dict[key] = value
-            else:
-                bm_dict[key] = str(value)
-        bm_dict['__class__'] = type(self).__name__
-
-        # Remove the password key unless it's for storage
-        if not for_storage and "password" in bm_dict:
-            del bm_dict["password"]
-
-        return bm_dict
